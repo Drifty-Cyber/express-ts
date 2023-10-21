@@ -1,4 +1,15 @@
-import { Request, Response, Router } from 'express';
+import { NextFunction, Request, Response, Router } from 'express';
+
+interface RequestWithBody {
+  body: { [key: string]: string | undefined };
+}
+
+const checkAuth = (req: Request, res: Response, next: NextFunction) => {
+  if (req.session && req.session.isLoggedIn) {
+    next();
+    return;
+  }
+};
 
 const router = Router();
 
@@ -82,8 +93,8 @@ router.get('/login', (req: Request, res: Response) => {
               <h2>Login</h2>
               <form action="/login" method="post">
                   <div class="form-group">
-                      <label for="username">Username</label>
-                      <input type="text" id="username" name="username" required>
+                      <label for="enail">Email</label>
+                      <input type="text" id="username" name="email" required>
                   </div>
                   <div class="form-group">
                       <label for="password">Password</label>
@@ -99,15 +110,40 @@ router.get('/login', (req: Request, res: Response) => {
   `);
 });
 
-router.post('/login', (req: Request, res: Response, next) => {
-  const { username, password } = req.body;
+router.post('/login', (req: RequestWithBody, res: Response, next) => {
+  const { email, password } = req.body;
 
-  res.status(200).json({
-    username,
-    password,
-  });
+  if (
+    email &&
+    password &&
+    email === 'me@email.com' &&
+    password === 'password'
+  ) {
+    req.session = { loggedIn: true };
+    res.redirect('/');
+  } else {
+    res.send('Incorrect Email or Password');
+  }
+});
 
-  next();
+router.get('/', (req: Request, res: Response) => {
+  if (req.session && req.session.loggedIn) {
+    res.send(`
+        <h1>You are logged in.🎉🎉👏🏾</h1>
+        <a href="/logout">Logout</a>
+    `);
+  } else {
+    res.send(`
+        <h1>You are not logged in.</h1>
+        <a href="/login">Login</a>
+    `);
+  }
+});
+
+router.get('/logout', (req: Request, res: Response) => {
+  req.session = undefined;
+
+  res.redirect('/');
 });
 
 export { router };
