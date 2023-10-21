@@ -6,7 +6,7 @@ import { router } from './routes/loginRoutes';
 const app: Application = express();
 
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(cookieSession({ keys: ['inudwiudjwinsmkallaancnbxtreea'] }));
+app.use(cookieSession({ keys: ['inudwiudjwinbxtreea'] }));
 
 app.use(router);
 
