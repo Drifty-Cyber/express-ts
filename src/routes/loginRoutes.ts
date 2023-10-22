@@ -9,6 +9,9 @@ const checkAuth = (req: Request, res: Response, next: NextFunction) => {
     next();
     return;
   }
+
+  res.status(403);
+  res.send('Not Permitted');
 };
 
 const router = Router();
@@ -144,6 +147,10 @@ router.get('/logout', (req: Request, res: Response) => {
   req.session = undefined;
 
   res.redirect('/');
+});
+
+router.get('/protected', checkAuth, (req: Request, res: Response, next) => {
+  res.send('Welcome to protected route');
 });
 
 export { router };

@@ -2,6 +2,14 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.router = void 0;
 const express_1 = require("express");
+const checkAuth = (req, res, next) => {
+    if (req.session && req.session.isLoggedIn) {
+        next();
+        return;
+    }
+    res.status(403);
+    res.send('Not Permitted');
+};
 const router = (0, express_1.Router)();
 exports.router = router;
 router.get('/login', (req, res) => {
@@ -84,8 +92,8 @@ router.get('/login', (req, res) => {
               <h2>Login</h2>
               <form action="/login" method="post">
                   <div class="form-group">
-                      <label for="username">Username</label>
-                      <input type="text" id="username" name="username" required>
+                      <label for="enail">Email</label>
+                      <input type="text" id="username" name="email" required>
                   </div>
                   <div class="form-group">
                       <label for="password">Password</label>
@@ -101,10 +109,36 @@ router.get('/login', (req, res) => {
   `);
 });
 router.post('/login', (req, res, next) => {
-    const { username, password } = req.body;
-    res.status(200).json({
-        username,
-        password,
-    });
-    next();
+    const { email, password } = req.body;
+    if (email &&
+        password &&
+        email === 'me@email.com' &&
+        password === 'password') {
+        req.session = { loggedIn: true };
+        res.redirect('/');
+    }
+    else {
+        res.send('Incorrect Email or Password');
+    }
+});
+router.get('/', (req, res) => {
+    if (req.session && req.session.loggedIn) {
+        res.send(`
+        <h1>You are logged in.🎉🎉👏🏾</h1>
+        <a href="/logout">Logout</a>
+    `);
+    }
+    else {
+        res.send(`
+        <h1>You are not logged in.</h1>
+        <a href="/login">Login</a>
+    `);
+    }
+});
+router.get('/logout', (req, res) => {
+    req.session = undefined;
+    res.redirect('/');
+});
+router.get('/protected', checkAuth, (req, res, next) => {
+    res.send('Welcome to protected route');
 });
